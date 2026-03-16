@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TURNSTILE — Get Through</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --off-black: #111111;
+    --charcoal: #1c1c1c;
+    --rust: #C44B1B;
+    --rust-dim: #8B3412;
+    --amber: #E8A020;
+    --cream: #F0EBE0;
+    --muted: #6B6560;
+    --green: #4A7C59;
+    --green-bright: #5FAD6E;
+    --red: #8B2020;
+    --paper: #2a2520;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--cream);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* ── GRAIN OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    border-bottom: 1px solid rgba(240,235,224,0.08);
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(8px);
+  }
+
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 6px;
+    color: var(--cream);
+  }
+  .nav-logo span { color: var(--rust); }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--cream); }
+
+  .nav-cta {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: var(--rust);
+    color: var(--cream);
+    border: none;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .nav-cta:hover { background: var(--rust-dim); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 48px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 70% 50%, rgba(196,75,27,0.07) 0%, transparent 60%),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 80px,
+        rgba(240,235,224,0.015) 80px,
+        rgba(240,235,224,0.015) 81px
+      );
+  }
+
+  .hero-ticket-bg {
+    position: absolute;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%) rotate(8deg);
+    width: 520px;
+    height: 240px;
+    background: var(--charcoal);
+    border: 1px solid rgba(240,235,224,0.06);
+    opacity: 0.4;
+  }
+  .hero-ticket-bg::after {
+    content: '';
+    position: absolute;
+    left: 140px; top: 0; bottom: 0;
+    width: 1px;
+    background: repeating-linear-gradient(to bottom, rgba(240,235,224,0.15) 0px, rgba(240,235,224,0.15) 8px, transparent 8px, transparent 16px);
+  }
+
+  .hero-content { position: relative; z-index: 2; max-width: 680px; }
+
+  .hero-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--rust);
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 12vw, 140px);
+    line-height: 0.9;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+  .hero-title .line2 {
+    color: var(--rust);
+    display: block;
+  }
+
+  .hero-subtitle {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 40px;
+    text-transform: uppercase;
+  }
+
+  .hero-body {
+    font-size: 16px;
+    line-height: 1.8;
+    color: rgba(240,235,224,0.7);
+    max-width: 480px;
+    margin-bottom: 48px;
+  }
+
+  .hero-actions { display: flex; gap: 16px; align-items: center; }
+
+  .btn-primary {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: var(--rust);
+    color: var(--cream);
+    border: none;
+    padding: 16px 36px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { background: #d4521f; transform: translateY(-1px); }
+
+  .btn-ghost {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid rgba(240,235,224,0.15);
+    padding: 16px 36px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { color: var(--cream); border-color: rgba(240,235,224,0.4); }
+
+  .hero-stats {
+    position: absolute;
+    bottom: 60px;
+    right: 48px;
+    display: flex;
+    gap: 48px;
+  }
+  .stat { text-align: right; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    color: var(--cream);
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section { padding: 100px 48px; }
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--rust); }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(42px, 6vw, 72px);
+    letter-spacing: 3px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how-it-works { background: var(--off-black); border-top: 1px solid rgba(240,235,224,0.06); }
+
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(240,235,224,0.06);
+    margin-top: 64px;
+  }
+
+  .step {
+    background: var(--off-black);
+    padding: 48px 36px;
+    position: relative;
+    transition: background 0.3s;
+  }
+  .step:hover { background: var(--charcoal); }
+
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    color: rgba(196,75,27,0.12);
+    line-height: 1;
+    margin-bottom: 24px;
+    transition: color 0.3s;
+  }
+  .step:hover .step-num { color: rgba(196,75,27,0.25); }
+
+  .step-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+
+  .step-body {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--muted);
+  }
+
+  /* ── FRI SCORE ── */
+  .fri-section { background: var(--black); }
+
+  .fri-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+    margin-top: 64px;
+  }
+
+  .fri-visual {
+    position: relative;
+  }
+
+  .score-card {
+    background: var(--charcoal);
+    border: 1px solid rgba(240,235,224,0.08);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--rust), var(--amber));
+  }
+
+  .score-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+  }
+
+  .score-user {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cream);
+  }
+  .score-user-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+
+  .score-badge {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    background: rgba(196,75,27,0.15);
+    color: var(--rust);
+    border: 1px solid rgba(196,75,27,0.3);
+    padding: 6px 14px;
+  }
+
+  .score-main {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .score-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 96px;
+    line-height: 1;
+    color: var(--amber);
+  }
+  .score-denom {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--muted);
+  }
+
+  .score-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  .score-bar-track {
+    height: 4px;
+    background: rgba(240,235,224,0.08);
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rust) 0%, var(--amber) 100%);
+    width: 78%;
+    position: relative;
+  }
+  .score-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 10px; height: 10px;
+    background: var(--amber);
+    border-radius: 50%;
+  }
+
+  .score-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .score-row-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .score-row-bar {
+    flex: 1;
+    height: 2px;
+    background: rgba(240,235,224,0.06);
+    margin: 0 20px;
+    position: relative;
+  }
+  .score-row-bar-fill {
+    height: 100%;
+    background: var(--rust);
+  }
+
+  .score-row-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cream);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .fri-explainer { padding-top: 8px; }
+
+  .fri-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+
+  .fri-body {
+    font-size: 15px;
+    line-height: 1.9;
+    color: rgba(240,235,224,0.65);
+    margin-bottom: 32px;
+  }
+
+  .fri-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .fri-rule {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px;
+    border-left: 2px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .fri-rule:hover { border-color: var(--rust); background: rgba(196,75,27,0.04); }
+
+  .fri-rule-icon {
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .fri-rule-content {}
+  .fri-rule-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--cream);
+    margin-bottom: 4px;
+  }
+  .fri-rule-body { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  /* ── SHOW DISCOVERY ── */
+  .shows-section { background: var(--off-black); border-top: 1px solid rgba(240,235,224,0.06); }
+
+  .shows-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+  }
+  .filter-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid rgba(240,235,224,0.12);
+    color: var(--muted);
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--cream);
+  }
+
+  .shows-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(240,235,224,0.06);
+  }
+
+  .show-card {
+    background: var(--off-black);
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.2s;
+    overflow: hidden;
+    position: relative;
+  }
+  .show-card:hover { background: var(--charcoal); }
+
+  .show-card-top {
+    height: 6px;
+  }
+  .show-card-top.green { background: var(--green); }
+  .show-card-top.amber { background: var(--amber); }
+  .show-card-top.rust { background: var(--rust); }
+  .show-card-top.muted { background: var(--muted); }
+
+  .show-card-body { padding: 28px; }
+
+  .show-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .show-date {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .show-status {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid;
+  }
+  .show-status.open { color: var(--green-bright); border-color: rgba(95,173,110,0.3); background: rgba(95,173,110,0.06); }
+  .show-status.hot { color: var(--amber); border-color: rgba(232,160,32,0.3); background: rgba(232,160,32,0.06); }
+  .show-status.waitlist { color: var(--rust); border-color: rgba(196,75,27,0.3); background: rgba(196,75,27,0.06); }
+  .show-status.members { color: var(--muted); border-color: rgba(107,101,96,0.3); background: rgba(107,101,96,0.06); }
+
+  .show-artist {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--cream);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .show-venue {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .show-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid rgba(240,235,224,0.06);
+  }
+
+  .show-price {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--cream);
+  }
+  .show-price-note {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .show-fri-req {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+  }
+  .show-fri-val {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--amber);
+    display: block;
+  }
+
+  /* ── TIERS ── */
+  .tiers-section { background: var(--black); }
+
+  .tiers-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(240,235,224,0.06);
+    margin-top: 64px;
+  }
+
+  .tier-card {
+    background: var(--black);
+    padding: 48px 36px;
+    position: relative;
+    transition: background 0.3s;
+  }
+  .tier-card:hover { background: var(--charcoal); }
+  .tier-card.featured { background: var(--charcoal); }
+
+  .tier-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .tier-accent.encore { background: var(--muted); }
+  .tier-accent.setlist { background: var(--rust); }
+  .tier-accent.backstage { background: var(--amber); }
+
+  .tier-featured-badge {
+    position: absolute;
+    top: 20px; right: 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: var(--rust);
+    color: var(--cream);
+    padding: 4px 12px;
+  }
+
+  .tier-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 4px;
+    color: var(--cream);
+    margin-bottom: 8px;
+  }
+
+  .tier-tagline {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  .tier-price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .tier-price-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px;
+    line-height: 1;
+    color: var(--cream);
+  }
+  .tier-price-per {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .tier-annual {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    color: var(--green-bright);
+    letter-spacing: 1px;
+    margin-bottom: 36px;
+  }
+
+  .tier-divider {
+    height: 1px;
+    background: rgba(240,235,224,0.06);
+    margin-bottom: 28px;
+  }
+
+  .tier-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 36px;
+  }
+
+  .tier-feature {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: rgba(240,235,224,0.75);
+  }
+
+  .tier-feature-check {
+    color: var(--rust);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .tier-btn {
+    width: 100%;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 14px;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all 0.2s;
+  }
+  .tier-btn.outline {
+    background: transparent;
+    border-color: rgba(240,235,224,0.15);
+    color: var(--muted);
+  }
+  .tier-btn.outline:hover {
+    border-color: var(--cream);
+    color: var(--cream);
+  }
+  .tier-btn.filled {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--cream);
+  }
+  .tier-btn.filled:hover { background: #d4521f; }
+  .tier-btn.amber-filled {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--black);
+  }
+  .tier-btn.amber-filled:hover { background: #d4901a; }
+
+  /* ── UNIT ECONOMICS ── */
+  .economics-section {
+    background: var(--paper);
+    border-top: 1px solid rgba(240,235,224,0.06);
+  }
+
+  .econ-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    margin-top: 64px;
+  }
+
+  .econ-block {}
+  .econ-block-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 28px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(240,235,224,0.08);
+  }
+
+  .econ-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(240,235,224,0.04);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+
+  .econ-row-label { color: var(--muted); text-transform: uppercase; }
+  .econ-row-val { color: var(--cream); font-weight: 600; }
+  .econ-row-val.positive { color: var(--green-bright); }
+  .econ-row-val.negative { color: var(--rust); }
+  .econ-row-val.highlight { color: var(--amber); }
+  .econ-row.total {
+    margin-top: 8px;
+    border-bottom: none;
+    border-top: 1px solid rgba(240,235,224,0.15);
+    padding-top: 16px;
+  }
+  .econ-row.total .econ-row-label { color: var(--cream); font-size: 17px; }
+  .econ-row.total .econ-row-val { font-size: 20px; }
+
+  .milestone-block {
+    margin-top: 48px;
+  }
+
+  .milestone {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(240,235,224,0.06);
+    align-items: flex-start;
+  }
+
+  .milestone-marker {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--rust);
+    background: rgba(196,75,27,0.1);
+    border: 1px solid rgba(196,75,27,0.2);
+    padding: 4px 10px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+
+  .milestone-text {}
+  .milestone-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--cream);
+    margin-bottom: 4px;
+  }
+  .milestone-body { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--charcoal);
+    border-top: 1px solid rgba(240,235,224,0.06);
+    padding: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 6px;
+    color: var(--cream);
+  }
+  .footer-logo span { color: var(--rust); }
+
+  .footer-copy {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-content > * {
+    animation: fadeUp 0.7s ease forwards;
+    opacity: 0;
+  }
+  .hero-eyebrow { animation-delay: 0.1s; }
+  .hero-title { animation-delay: 0.2s; }
+  .hero-subtitle { animation-delay: 0.3s; }
+  .hero-body { animation-delay: 0.4s; }
+  .hero-actions { animation-delay: 0.5s; }
+
+  /* tab interaction */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">TURN<span>S</span>TILE</div>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#score">Your Score</a></li>
+    <li><a href="#shows">Shows</a></li>
+    <li><a href="#tiers">Membership</a></li>
+  </ul>
+  <button class="nav-cta">Get Access</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-ticket-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Anti-scalp membership platform</div>
+    <h1 class="hero-title">
+      STOP<br>
+      <span class="line2">FIGHTING.</span>
+    </h1>
+    <div class="hero-subtitle">Start going to shows.</div>
+    <p class="hero-body">
+      Bots buy thousands of tickets in seconds. Scalpers triple the price before you refresh. Turnstile reserves a portion of every show for real fans — no drops, no bots, no $400 resale. Your access is earned, not lucky.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-primary">Join the Waitlist</button>
+      <button class="btn-ghost">See How It Works</button>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">10–15%</div>
+      <div class="stat-label">Of every show reserved</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">$0</div>
+      <div class="stat-label">Resale markup, ever</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Bot-proof allocation</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section how-it-works" id="how">
+  <div class="section-label">The System</div>
+  <div class="section-title">HOW IT WORKS</div>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">Subscribe</div>
+      <div class="step-body">Pick your tier. Your membership unlocks access to a guaranteed allocation of every participating venue's capacity — reserved exclusively for Turnstile members.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">Claim Shows</div>
+      <div class="step-body">Browse upcoming shows and claim tickets based on your tier allowance and Fan Reliability Index score. No drops. No racing bots. Claim on your schedule.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">Show Up</div>
+      <div class="step-body">Attend the shows you claimed. Every attendance improves your FRI score, unlocking better access over time. Can't make it? Release your ticket early — someone on the waitlist gets it at face value.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-title">Earn Access</div>
+      <div class="step-body">Your FRI score grows with consistent attendance. Higher scores unlock high-demand shows, arena events, and festivals. The best access goes to the most dedicated fans — not whoever clicks fastest.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FRI SCORE -->
+<section class="section fri-section" id="score">
+  <div class="section-label">Fan Reliability Index</div>
+  <div class="section-title">YOUR SCORE<br>IS YOUR ACCESS</div>
+  <div class="fri-layout">
+    <div class="fri-visual">
+      <div class="score-card">
+        <div class="score-header">
+          <div>
+            <div class="score-user">Jacob Robinson</div>
+            <div class="score-user-sub">Setlist Member · Since Jan 2025</div>
+          </div>
+          <div class="score-badge">SETLIST TIER</div>
+        </div>
+        <div class="score-main">
+          <div class="score-num">78</div>
+          <div class="score-denom">/100</div>
+        </div>
+        <div class="score-label">Fan Reliability Index</div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill"></div>
+        </div>
+        <div class="score-breakdown">
+          <div class="score-row">
+            <div class="score-row-label">Attendance Rate</div>
+            <div class="score-row-bar"><div class="score-row-bar-fill" style="width:88%"></div></div>
+            <div class="score-row-val">88%</div>
+          </div>
+          <div class="score-row">
+            <div class="score-row-label">Early Releases</div>
+            <div class="score-row-bar"><div class="score-row-bar-fill" style="width:75%"></div></div>
+            <div class="score-row-val">75%</div>
+          </div>
+          <div class="score-row">
+            <div class="score-row-label">Tenure Bonus</div>
+            <div class="score-row-bar"><div class="score-row-bar-fill" style="width:60%"></div></div>
+            <div class="score-row-val">+6 pts</div>
+          </div>
+          <div class="score-row">
+            <div class="score-row-label">Community</div>
+            <div class="score-row-bar"><div class="score-row-bar-fill" style="width:45%"></div></div>
+            <div class="score-row-val">+4 pts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fri-explainer">
+      <div class="fri-title">EARN YOUR SPOT IN THE ROOM</div>
+      <p class="fri-body">The FRI is a 0–100 score that reflects how reliable a fan you are. It's not about how fast you click — it's about showing up. Higher scores unlock access to higher-demand shows. The system is transparent, fair, and designed to reward real fans over time.</p>
+      <div class="fri-rules">
+        <div class="fri-rule">
+          <div class="fri-rule-icon">↑</div>
+          <div class="fri-rule-content">
+            <div class="fri-rule-title">Attend shows you claim</div>
+            <div class="fri-rule-body">Every show attended improves your score. Consistent attendance over 6+ months builds a score floor that new users can't reach.</div>
+          </div>
+        </div>
+        <div class="fri-rule">
+          <div class="fri-rule-icon">↑</div>
+          <div class="fri-rule-content">
+            <div class="fri-rule-title">Release tickets early</div>
+            <div class="fri-rule-body">Can't make it? Release 72+ hours before the show and receive full score credit. Someone on the waitlist gets your ticket at face value.</div>
+          </div>
+        </div>
+        <div class="fri-rule">
+          <div class="fri-rule-icon">↓</div>
+          <div class="fri-rule-content">
+            <div class="fri-rule-title">No-shows hurt your score</div>
+            <div class="fri-rule-body">Missing a show without releasing your ticket is a score hit. Consecutive no-shows accelerate the penalty. Life happens — 2 emergency holds per year, score-neutral.</div>
+          </div>
+        </div>
+        <div class="fri-rule">
+          <div class="fri-rule-icon">✕</div>
+          <div class="fri-rule-content">
+            <div class="fri-rule-title">No outside resale — ever</div>
+            <div class="fri-rule-body">Listing a Turnstile ticket on StubHub or any third-party platform resets your FRI to zero. Tickets are non-transferable outside the platform.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWS -->
+<section class="section shows-section" id="shows">
+  <div class="shows-header-row">
+    <div>
+      <div class="section-label">Show Discovery</div>
+      <div class="section-title">CLAIM YOUR SHOWS</div>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter(this)">All</button>
+      <button class="filter-btn" onclick="setFilter(this)">Available</button>
+      <button class="filter-btn" onclick="setFilter(this)">High Demand</button>
+      <button class="filter-btn" onclick="setFilter(this)">Waitlist</button>
+    </div>
+  </div>
+  <div class="shows-grid">
+    <div class="show-card">
+      <div class="show-card-top green"></div>
+      <div class="show-card-body">
+        <div class="show-meta">
+          <div class="show-date">Fri Mar 28 · Metro Chicago</div>
+          <div class="show-status open">Open</div>
+        </div>
+        <div class="show-artist">Hotline TNT</div>
+        <div class="show-venue">Metro · Chicago, IL · Cap 1,100</div>
+        <div class="show-footer">
+          <div>
+            <div class="show-price">$22 <span style="font-size:12px;color:var(--green-bright)">face value</span></div>
+            <div class="show-price-note">Included with Setlist+</div>
+          </div>
+          <div class="show-fri-req">
+            FRI Required
+            <span class="show-fri-val">40+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="show-card">
+      <div class="show-card-top amber"></div>
+      <div class="show-card-body">
+        <div class="show-meta">
+          <div class="show-date">Sat Apr 5 · Thalia Hall</div>
+          <div class="show-status hot">High Demand</div>
+        </div>
+        <div class="show-artist">Model/Actriz</div>
+        <div class="show-venue">Thalia Hall · Chicago, IL · Cap 750</div>
+        <div class="show-footer">
+          <div>
+            <div class="show-price">$28 <span style="font-size:12px;color:var(--green-bright)">face value</span></div>
+            <div class="show-price-note">Setlist · Backstage</div>
+          </div>
+          <div class="show-fri-req">
+            FRI Required
+            <span class="show-fri-val">65+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="show-card">
+      <div class="show-card-top rust"></div>
+      <div class="show-card-body">
+        <div class="show-meta">
+          <div class="show-date">Wed Apr 9 · Aragon Ballroom</div>
+          <div class="show-status waitlist">Waitlist</div>
+        </div>
+        <div class="show-artist">Mdou Moctar</div>
+        <div class="show-venue">Aragon Ballroom · Chicago, IL · Cap 4,500</div>
+        <div class="show-footer">
+          <div>
+            <div class="show-price">$45 <span style="font-size:12px;color:var(--green-bright)">face value</span></div>
+            <div class="show-price-note">Backstage only</div>
+          </div>
+          <div class="show-fri-req">
+            FRI Required
+            <span class="show-fri-val">75+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="show-card">
+      <div class="show-card-top green"></div>
+      <div class="show-card-body">
+        <div class="show-meta">
+          <div class="show-date">Thu Apr 17 · Schubas</div>
+          <div class="show-status open">Open</div>
+        </div>
+        <div class="show-artist">Lifeguard</div>
+        <div class="show-venue">Schubas Tavern · Chicago, IL · Cap 200</div>
+        <div class="show-footer">
+          <div>
+            <div class="show-price">$15 <span style="font-size:12px;color:var(--green-bright)">face value</span></div>
+            <div class="show-price-note">All tiers</div>
+          </div>
+          <div class="show-fri-req">
+            FRI Required
+            <span class="show-fri-val">20+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="show-card">
+      <div class="show-card-top muted"></div>
+      <div class="show-card-body">
+        <div class="show-meta">
+          <div class="show-date">Sat Apr 26 · United Center</div>
+          <div class="show-status members">Backstage Only</div>
+        </div>
+        <div class="show-artist">Charli xcx</div>
+        <div class="show-venue">United Center · Chicago, IL · Cap 21,000</div>
+        <div class="show-footer">
+          <div>
+            <div class="show-price">$85 <span style="font-size:12px;color:var(--green-bright)">face value</span></div>
+            <div class="show-price-note">Backstage tier only</div>
+          </div>
+          <div class="show-fri-req">
+            FRI Required
+            <span class="show-fri-val">80+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="show-card">
+      <div class="show-card-top amber"></div>
+      <div class="show-card-body">
+        <div class="show-meta">
+          <div class="show-date">Fri May 2 · Empty Bottle</div>
+          <div class="show-status hot">High Demand</div>
+        </div>
+        <div class="show-artist">Dehd</div>
+        <div class="show-venue">Empty Bottle · Chicago, IL · Cap 400</div>
+        <div class="show-footer">
+          <div>
+            <div class="show-price">$18 <span style="font-size:12px;color:var(--green-bright)">face value</span></div>
+            <div class="show-price-note">Setlist · Backstage</div>
+          </div>
+          <div class="show-fri-req">
+            FRI Required
+            <span class="show-fri-val">55+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIERS -->
+<section class="section tiers-section" id="tiers">
+  <div class="section-label">Membership</div>
+  <div class="section-title">PICK YOUR TIER</div>
+  <div class="tiers-grid">
+    <div class="tier-card">
+      <div class="tier-accent encore"></div>
+      <div class="tier-name">ENCORE</div>
+      <div class="tier-tagline">Get your foot in the door</div>
+      <div class="tier-price">
+        <div class="tier-price-num">$25</div>
+        <div class="tier-price-per">/month</div>
+      </div>
+      <div class="tier-annual">$240/year — save $60</div>
+      <div class="tier-divider"></div>
+      <ul class="tier-features">
+        <li class="tier-feature"><span class="tier-feature-check">—</span> 2 show claims per month</li>
+        <li class="tier-feature"><span class="tier-feature-check">—</span> Local & mid-size venues</li>
+        <li class="tier-feature"><span class="tier-feature-check">—</span> FRI score building from day one</li>
+        <li class="tier-feature"><span class="tier-feature-check">—</span> Face value tickets always</li>
+        <li class="tier-feature"><span class="tier-feature-check">—</span> Waitlist access for released tickets</li>
+      </ul>
+      <button class="tier-btn outline">Start with Encore</button>
+    </div>
+    <div class="tier-card featured">
+      <div class="tier-accent setlist"></div>
+      <div class="tier-featured-badge">Most Popular</div>
+      <div class="tier-name">SETLIST</div>
+      <div class="tier-tagline">For the regulars</div>
+      <div class="tier-price">
+        <div class="tier-price-num">$65</div>
+        <div class="tier-price-per">/month</div>
+      </div>
+      <div class="tier-annual">$624/year — save $156</div>
+      <div class="tier-divider"></div>
+      <ul class="tier-features">
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--rust)">—</span> 4 show claims per month</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--rust)">—</span> Major venues + arenas (FRI 60+)</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--rust)">—</span> Priority waitlist position</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--rust)">—</span> Emergency hold (2x/year)</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--rust)">—</span> Score-based waitlist ranking</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--rust)">—</span> Member transfer system</li>
+      </ul>
+      <button class="tier-btn filled">Start with Setlist</button>
+    </div>
+    <div class="tier-card">
+      <div class="tier-accent backstage"></div>
+      <div class="tier-name">BACKSTAGE</div>
+      <div class="tier-tagline">For the obsessed</div>
+      <div class="tier-price">
+        <div class="tier-price-num">$120</div>
+        <div class="tier-price-per">/month</div>
+      </div>
+      <div class="tier-annual">$1,150/year — save $290</div>
+      <div class="tier-divider"></div>
+      <ul class="tier-features">
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--amber)">—</span> Unlimited claims (availability permitting)</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--amber)">—</span> Arenas, festivals, all venues</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--amber)">—</span> First position on all waitlists</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--amber)">—</span> Emergency hold (4x/year)</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--amber)">—</span> +1 guest pass (2x/month)</li>
+        <li class="tier-feature"><span class="tier-feature-check" style="color:var(--amber)">—</span> FRI 80+ required for top events</li>
+      </ul>
+      <button class="tier-btn amber-filled">Start with Backstage</button>
+    </div>
+  </div>
+</section>
+
+<!-- UNIT ECONOMICS -->
+<section class="section economics-section" id="economics">
+  <div class="section-label">Business Model</div>
+  <div class="section-title">UNIT ECONOMICS</div>
+  <div class="econ-grid">
+    <div>
+      <div class="econ-block">
+        <div class="econ-block-title">Revenue Per User (Blended Annual)</div>
+        <div class="econ-row">
+          <div class="econ-row-label">Encore (est. 40% of base)</div>
+          <div class="econ-row-val">$240 / yr</div>
+        </div>
+        <div class="econ-row">
+          <div class="econ-row-label">Setlist (est. 45% of base)</div>
+          <div class="econ-row-val">$624 / yr</div>
+        </div>
+        <div class="econ-row">
+          <div class="econ-row-label">Backstage (est. 15% of base)</div>
+          <div class="econ-row-val">$1,150 / yr</div>
+        </div>
+        <div class="econ-row total">
+          <div class="econ-row-label">Blended ARPU</div>
+          <div class="econ-row-val highlight">~$536 / yr</div>
+        </div>
+      </div>
+
+      <div class="econ-block" style="margin-top:40px">
+        <div class="econ-block-title">Cost Structure (Per User / Year)</div>
+        <div class="econ-row">
+          <div class="econ-row-label">Payment processing (2.9%)</div>
+          <div class="econ-row-val negative">−$16</div>
+        </div>
+        <div class="econ-row">
+          <div class="econ-row-label">Venue allocation fee (est. 5%)</div>
+          <div class="econ-row-val negative">−$27</div>
+        </div>
+        <div class="econ-row">
+          <div class="econ-row-label">Platform infra & support</div>
+          <div class="econ-row-val negative">−$40</div>
+        </div>
+        <div class="econ-row">
+          <div class="econ-row-label">CAC amortized (yr 1)</div>
+          <div class="econ-row-val negative">−$55</div>
+        </div>
+        <div class="econ-row total">
+          <div class="econ-row-label">Gross Margin (Yr 1)</div>
+          <div class="econ-row-val positive">~$398 / user</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="econ-block">
+        <div class="econ-block-title">Scale Milestones</div>
+        <div class="milestone-block">
+          <div class="milestone">
+            <div class="milestone-marker">Month 3</div>
+            <div class="milestone-text">
+              <div class="milestone-title">500 subscribers · 3 venue partners</div>
+              <div class="milestone-body">MVP validation. Prove attendance rates exceed general sale by 15%+. This data is the venue partnership pitch for phase 2.</div>
+            </div>
+          </div>
+          <div class="milestone">
+            <div class="milestone-marker">Month 9</div>
+            <div class="milestone-text">
+              <div class="milestone-title">2,500 subscribers · $1.34M ARR</div>
+              <div class="milestone-body">Blended ARPU × 2,500 users. Profitable at this scale with lean team. Begin expanding to 2nd city market (NYC or LA).</div>
+            </div>
+          </div>
+          <div class="milestone">
+            <div class="milestone-marker">Year 2</div>
+            <div class="milestone-text">
+              <div class="milestone-title">10,000 subscribers · $5.36M ARR</div>
+              <div class="milestone-body">Multi-city. Festival allocation deals. Data product layer: sell anonymized fan attendance intelligence to venues and managers.</div>
+            </div>
+          </div>
+          <div class="milestone">
+            <div class="milestone-marker">Year 3</div>
+            <div class="milestone-text">
+              <div class="milestone-title">50,000 subscribers · $26.8M ARR</div>
+              <div class="milestone-body">Series A territory. National venue network. Artist partnership program. Social integration with friend's MVP app for fan discovery layer.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">TURN<span>S</span>TILE</div>
+  <div class="footer-copy">© 2026 Turnstile · For real fans only</div>
+  <button class="btn-primary" style="font-size:12px;padding:12px 24px">Join Waitlist</button>
+</footer>
+
+<script>
+  function setFilter(btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // Animate score bar on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.step, .tier-card, .show-card, .milestone').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
